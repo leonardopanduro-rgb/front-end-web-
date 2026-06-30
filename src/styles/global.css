@@ -306,7 +306,12 @@ p {
 .sidebar {
   background: #fff;
   border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
   padding: 20px;
+  position: sticky;
+  top: 0;
 }
 
 .brand {
@@ -335,7 +340,8 @@ p {
   gap: 4px;
 }
 
-.nav a {
+.nav a,
+.sidebar-logout {
   border-radius: var(--radius);
   color: var(--color-text);
   font-weight: 700;
@@ -343,9 +349,54 @@ p {
 }
 
 .nav a.active,
-.nav a:hover {
+.nav a:hover,
+.sidebar-logout:hover {
   background: #E8F7FD;
   color: var(--color-navy);
+}
+
+.sidebar-logout {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  display: inline-flex;
+  gap: 10px;
+  justify-content: flex-start;
+  margin-top: auto;
+  min-height: 44px;
+  width: 100%;
+}
+
+.logout-power {
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  display: inline-block;
+  height: 20px;
+  position: relative;
+  width: 20px;
+}
+
+.logout-power::before {
+  background: #fff;
+  content: "";
+  height: 8px;
+  left: 50%;
+  position: absolute;
+  top: -5px;
+  transform: translateX(-50%);
+  width: 8px;
+}
+
+.logout-power::after {
+  background: currentColor;
+  border-radius: 999px;
+  content: "";
+  height: 12px;
+  left: 50%;
+  position: absolute;
+  top: -8px;
+  transform: translateX(-50%);
+  width: 2px;
 }
 
 .workspace {
@@ -957,6 +1008,39 @@ p {
   width: 76px;
 }
 
+.avatar.small {
+  font-size: 18px;
+  height: 52px;
+  width: 52px;
+}
+
+.profile-card {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+}
+
+.profile-card h3 {
+  margin-bottom: 4px;
+}
+
+.profile-card p {
+  margin-bottom: 6px;
+}
+
+.schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.schedule-card {
+  align-items: end;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 140px 120px minmax(180px, 1fr) 100px minmax(180px, 1fr) auto;
+}
+
 .rating-row {
   display: flex;
   gap: 8px;
@@ -1070,11 +1154,17 @@ p {
   .page-title-row,
   .profile-header,
   .vehicle-card,
+  .profile-card,
   .topbar-actions,
   .form-actions,
   .modal-actions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .schedule-card {
+    align-items: stretch;
+    grid-template-columns: 1fr;
   }
 
   .welcome-page {

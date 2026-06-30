@@ -113,8 +113,8 @@ export const SearchTripsPage = () => {
       ) : null}
       {eligibility.hasConfirmedRide ? (
         <section className="state state-info">
-          <strong>Ya tienes un viaje confirmado</strong>
-          <span>No mostraremos otros viajes mientras tu participación esté confirmada.</span>
+          <strong>Ya tienes un viaje confirmado vigente</strong>
+          <span>No mostraremos otros viajes hasta que pase la hora de salida de tu viaje confirmado.</span>
         </section>
       ) : loading ? <LoadingState /> : error ? <ErrorMessage error={error} onRetry={fetch} /> : filtered.length === 0 ? (
         <EmptyState title="No hay viajes disponibles" subtitle="Prueba cambiando los filtros" />

@@ -140,8 +140,8 @@ export const DashboardPage = () => {
 
       {!isDriver && eligibility.hasConfirmedRide ? (
         <section className="info-band">
-          <strong>Ya tienes un viaje confirmado</strong>
-          <span>No mostraremos otros viajes disponibles mientras tu participación esté confirmada.</span>
+          <strong>Ya tienes un viaje confirmado vigente</strong>
+          <span>No mostraremos otros viajes disponibles hasta que pase la hora de salida de tu viaje confirmado.</span>
         </section>
       ) : null}
 

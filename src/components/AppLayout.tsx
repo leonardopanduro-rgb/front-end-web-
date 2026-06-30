@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { AppButton } from './AppButton';
 import { Breadcrumbs } from './Breadcrumbs';
 
 export const AppLayout = () => {
-  const { user, mode, setMode, logout } = useAuth();
+  const { user, mode, logout } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -56,21 +55,18 @@ export const AppLayout = () => {
           <NavLink to="/requests">Mis solicitudes</NavLink>
           <NavLink to="/driver-panel">Panel conductor</NavLink>
           <NavLink to="/vehicles">Vehiculos</NavLink>
+          <NavLink to="/profiles">Perfiles</NavLink>
           <NavLink to="/profile">Perfil</NavLink>
         </nav>
+        <button className="sidebar-logout" type="button" aria-label="Cerrar sesion" title="Cerrar sesion" onClick={() => void handleLogout()}>
+          <span className="logout-power" aria-hidden="true" />
+        </button>
       </aside>
       <div className="workspace">
         <header className="topbar">
           <div>
             <strong>{user?.name} {user?.lastName}</strong>
             <span>{user?.career?.replace(/_/g, ' ')}</span>
-          </div>
-          <div className="topbar-actions">
-            <div className="segmented compact">
-              <button className={mode === 'passenger' ? 'active' : ''} onClick={() => void setMode('passenger')}>Pasajero</button>
-              <button className={mode === 'driver' ? 'active' : ''} onClick={() => void setMode('driver')}>Conductor</button>
-            </div>
-            <AppButton variant="ghost" onClick={handleLogout}>Salir</AppButton>
           </div>
         </header>
         <main className="page-frame">

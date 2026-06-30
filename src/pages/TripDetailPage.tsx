@@ -12,7 +12,7 @@ import { weatherService, WeatherInfo } from '../services/weather';
 import { AppError } from '../types/apiError';
 import { Publication } from '../types/publication';
 import { parseAxiosError } from '../utils/errorMessages';
-import { formatDateTime, formatDistance } from '../utils/formatters';
+import { formatDepartureHour, formatDistance } from '../utils/formatters';
 import { useRequests } from '../hooks/useRequests';
 import { useRides } from '../hooks/useRides';
 import { usePassengerEligibility } from '../hooks/usePassengerEligibility';
@@ -108,7 +108,7 @@ export const TripDetailPage = () => {
         {pub.descripcion ? <p>{pub.descripcion}</p> : null}
         <dl className="info-list">
           <div><dt>Destino</dt><dd>{pub.destinationOrOrigin}</dd></div>
-          <div><dt>Salida</dt><dd>{formatDateTime(pub.departureTime)}</dd></div>
+          <div><dt>Hora de salida</dt><dd>{formatDepartureHour(pub.departureTime)}</dd></div>
           <div><dt>Asientos</dt><dd>{pub.seats}</dd></div>
           {pub.distanceToUtecKm != null ? <div><dt>Distancia a UTEC</dt><dd>{formatDistance(pub.distanceToUtecKm)}</dd></div> : null}
           <div><dt>Autor</dt><dd>Estudiante UTEC #{pub.authorId}</dd></div>

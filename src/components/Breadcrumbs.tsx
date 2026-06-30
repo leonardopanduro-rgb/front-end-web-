@@ -8,6 +8,7 @@ const labels: Record<string, string> = {
   requests: 'Mis solicitudes',
   'driver-panel': 'Panel conductor',
   vehicles: 'Vehiculos',
+  profiles: 'Perfiles',
   profile: 'Perfil',
   review: 'Calificar',
   'setup-vehicle': 'Configurar vehiculo',

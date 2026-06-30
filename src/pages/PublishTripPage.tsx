@@ -7,6 +7,7 @@ import { useVehicles } from '../hooks/useVehicles';
 import { publicationService } from '../services/publication';
 import { getCurrentCoords } from '../utils/locationHelpers';
 import { parseAxiosError } from '../utils/errorMessages';
+import { nextLocalIsoForTime } from '../utils/formatters';
 
 export const PublishTripPage = () => {
   const { user } = useAuth();
@@ -18,7 +19,7 @@ export const PublishTripPage = () => {
   const [destination, setDestination] = useState('');
   const [seats, setSeats] = useState('');
   const [vehicleId, setVehicleId] = useState<number | null>(null);
-  const [departure, setDeparture] = useState('');
+  const [departureHour, setDepartureHour] = useState('');
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState('');
@@ -39,8 +40,7 @@ export const PublishTripPage = () => {
     if (!vehicleId) next.vehicle = 'Selecciona un vehiculo';
     const vehicle = myVehicles.find((item) => item.id === vehicleId);
     if (vehicle && parsedSeats > vehicle.seats) next.seats = `Maximo ${vehicle.seats} para este vehiculo`;
-    if (!departure) next.departure = 'Selecciona fecha y hora';
-    else if (new Date(departure).getTime() < Date.now()) next.departure = 'La salida debe ser futura';
+    if (!departureHour) next.departure = 'Selecciona una hora';
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -71,7 +71,7 @@ export const PublishTripPage = () => {
         destinationOrOrigin: destination.trim(),
         externalLatitude: coords?.lat ?? null,
         externalLongitude: coords?.lng ?? null,
-        departureTime: `${departure}:00`,
+        departureTime: nextLocalIsoForTime(departureHour),
         vehicleId,
       });
       navigate('/home');
@@ -104,7 +104,7 @@ export const PublishTripPage = () => {
         <AppInput label="Titulo" value={titulo} onChange={(e) => setTitulo(e.target.value)} error={errors.titulo} />
         <AppInput label="Destino" value={destination} onChange={(e) => setDestination(e.target.value)} error={errors.destination} />
         <AppInput label="Asientos" type="number" min={1} value={seats} onChange={(e) => setSeats(e.target.value)} error={errors.seats} />
-        <AppInput label="Fecha y hora de salida" type="datetime-local" value={departure} onChange={(e) => setDeparture(e.target.value)} error={errors.departure} />
+        <AppInput label="Hora de salida" type="time" value={departureHour} onChange={(e) => setDepartureHour(e.target.value)} error={errors.departure} />
       </section>
       <AppInput label="Descripcion" multiline value={descripcion} onChange={(e) => setDescripcion(e.target.value)} error={errors.descripcion} />
       <label className="field">

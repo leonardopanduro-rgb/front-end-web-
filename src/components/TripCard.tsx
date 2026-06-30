@@ -1,5 +1,5 @@
 import { Publication } from '../types/publication';
-import { formatDateTime, formatDistance } from '../utils/formatters';
+import { formatDepartureHour, formatDistance } from '../utils/formatters';
 
 interface TripCardProps {
   pub: Publication;
@@ -18,7 +18,7 @@ export const TripCard = ({ pub, statusBadge, onClick }: TripCardProps) => (
     <div className="meta-grid">
       <span>Ofrece asientos</span>
       <span>{pub.destinationOrOrigin}</span>
-      <span>{formatDateTime(pub.departureTime)}</span>
+      <span>{formatDepartureHour(pub.departureTime)}</span>
       <span>{pub.seats} asiento(s)</span>
       {pub.distanceToUtecKm != null ? <span>{formatDistance(pub.distanceToUtecKm)}</span> : null}
     </div>

@@ -17,6 +17,8 @@ const MyRequestsPage = lazy(() => import('../pages/MyRequestsPage').then((m) => 
 const DriverPanelPage = lazy(() => import('../pages/DriverPanelPage').then((m) => ({ default: m.DriverPanelPage })));
 const VehiclePage = lazy(() => import('../pages/VehiclePage').then((m) => ({ default: m.VehiclePage })));
 const ProfilePage = lazy(() => import('../pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
+const ProfilesPage = lazy(() => import('../pages/ProfilesPage').then((m) => ({ default: m.ProfilesPage })));
+const PublicProfilePage = lazy(() => import('../pages/PublicProfilePage').then((m) => ({ default: m.PublicProfilePage })));
 const ReviewPage = lazy(() => import('../pages/ReviewPage').then((m) => ({ default: m.ReviewPage })));
 
 export const AppRoutes = () => (
@@ -38,6 +40,8 @@ export const AppRoutes = () => (
           <Route path="/requests" element={<MyRequestsPage />} />
           <Route path="/driver-panel" element={<DriverPanelPage />} />
           <Route path="/vehicles" element={<VehiclePage />} />
+          <Route path="/profiles" element={<ProfilesPage />} />
+          <Route path="/profiles/:userId" element={<PublicProfilePage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/review/:rideId" element={<ReviewPage />} />
         </Route>
