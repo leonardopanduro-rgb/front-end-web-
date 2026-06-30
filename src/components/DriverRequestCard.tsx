@@ -13,18 +13,22 @@ interface DriverRequestCardProps {
 export const DriverRequestCard = ({ req, onAccept, onReject, accepting, rejecting }: DriverRequestCardProps) => (
   <article className="card request-card compact">
     <div className="card-topline">
-      <span className="eyebrow">Estudiante UTEC #{req.requesterId}</span>
+      <span className="eyebrow">{req.requesterName || `Estudiante UTEC #${req.requesterId}`}</span>
       <StatusBadge status={req.status} />
+    </div>
+    <div className="meta-grid">
+      {req.requesterCareer ? <span>{req.requesterCareer.replace(/_/g, ' ')}</span> : null}
+      <span>{req.requesterRating == null ? 'Sin calificación' : `Rating ${req.requesterRating.toFixed(1)}`}</span>
     </div>
     <p>{req.message || 'Sin mensaje.'}</p>
     <div className="meta-grid">
       <span>{req.requesterIsDriver ? 'Solicita conducir' : 'Solicita asiento'}</span>
       <span>{req.seats} asiento(s)</span>
-      <span>{req.pickupPointOrDestine}</span>
+      <span>Destino: {req.pickupPointOrDestine}</span>
     </div>
     {req.status === 'PENDING' ? (
       <div className="card-actions">
-        <AppButton loading={accepting} onClick={onAccept}>Aceptar</AppButton>
+        {!req.legacyCountered ? <AppButton loading={accepting} onClick={onAccept}>Aceptar</AppButton> : null}
         <AppButton variant="outline" loading={rejecting} onClick={onReject}>Rechazar</AppButton>
       </div>
     ) : null}

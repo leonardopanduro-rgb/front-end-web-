@@ -40,7 +40,7 @@ export const DriverPanelPage = () => {
   }, [fetch]);
 
   useEffect(() => {
-    const myPubs = publications.filter((pub) => pub.authorId === user?.id);
+    const myPubs = publications.filter((pub) => pub.authorId === user?.id && pub.fromUTEC && pub.driverToPassenger);
     setPubData(myPubs.map((pub) => ({ pub, requests: [], loadingReqs: true })));
     myPubs.forEach((pub) => {
       void publicationService.getRequests(pub.id)

@@ -11,9 +11,8 @@ import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { usePublications } from '../hooks/usePublications';
 import { useRequests } from '../hooks/useRequests';
 import { useRides } from '../hooks/useRides';
+import { usePassengerEligibility } from '../hooks/usePassengerEligibility';
 
-type Direction = 'all' | 'fromUTEC' | 'toUTEC';
-type Kind = 'all' | 'offers' | 'seeks';
 type Sort = 'soonest' | 'seats';
 
 export const SearchTripsPage = () => {
@@ -23,14 +22,13 @@ export const SearchTripsPage = () => {
   const { publications, loading, error, fetch } = usePublications();
   const { requests, fetch: fetchReqs } = useRequests();
   const { myRides, fetch: fetchRides } = useRides(user?.id ?? null);
-  const [direction, setDirection] = useState<Direction>((searchParams.get('direction') as Direction) || 'all');
-  const [kind, setKind] = useState<Kind>((searchParams.get('kind') as Kind) || 'all');
   const [district, setDistrict] = useState(searchParams.get('district') || '');
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [sort, setSort] = useState<Sort>((searchParams.get('sort') as Sort) || 'soonest');
   const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
   const [size, setSize] = useState(Number(searchParams.get('size')) || 10);
   const debouncedSearch = useDebouncedValue(search);
+  const eligibility = usePassengerEligibility(requests, myRides, user?.id ?? null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -42,19 +40,17 @@ export const SearchTripsPage = () => {
 
   useEffect(() => {
     const next = new URLSearchParams();
-    if (direction !== 'all') next.set('direction', direction);
-    if (kind !== 'all') next.set('kind', kind);
     if (district) next.set('district', district);
     if (debouncedSearch) next.set('search', debouncedSearch);
     if (sort !== 'soonest') next.set('sort', sort);
     if (page !== 1) next.set('page', String(page));
     if (size !== 10) next.set('size', String(size));
     setSearchParams(next, { replace: true });
-  }, [direction, kind, district, debouncedSearch, sort, page, size, setSearchParams]);
+  }, [district, debouncedSearch, sort, page, size, setSearchParams]);
 
   useEffect(() => {
     setPage(1);
-  }, [direction, kind, district, debouncedSearch, sort, size]);
+  }, [district, debouncedSearch, sort, size]);
 
   const confirmedPubIds = new Set<number>([
     ...myRides.map((entry) => entry.ride.publicationId),
@@ -63,12 +59,9 @@ export const SearchTripsPage = () => {
   const pendingPubIds = new Set(requests.filter((req) => req.requesterId === user?.id && req.status === 'PENDING').map((req) => req.publicationId));
 
   const filtered = publications.filter((pub) => {
+    if (!pub.fromUTEC || !pub.driverToPassenger) return false;
     if (pub.authorId === user?.id) return false;
     if (confirmedPubIds.has(pub.id)) return false;
-    if (direction === 'fromUTEC' && !pub.fromUTEC) return false;
-    if (direction === 'toUTEC' && pub.fromUTEC) return false;
-    if (kind === 'offers' && !pub.driverToPassenger) return false;
-    if (kind === 'seeks' && pub.driverToPassenger) return false;
     if (district && !pub.destinationOrOrigin.toLowerCase().includes(district.toLowerCase())) return false;
     if (debouncedSearch) {
       const term = debouncedSearch.toLowerCase();
@@ -98,22 +91,6 @@ export const SearchTripsPage = () => {
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Titulo, distrito o descripcion" />
         </label>
         <label>
-          Sentido
-          <select value={direction} onChange={(e) => setDirection(e.target.value as Direction)}>
-            <option value="all">Todos</option>
-            <option value="fromUTEC">Saliendo de UTEC</option>
-            <option value="toUTEC">Hacia campus</option>
-          </select>
-        </label>
-        <label>
-          Tipo
-          <select value={kind} onChange={(e) => setKind(e.target.value as Kind)}>
-            <option value="all">Todos</option>
-            <option value="offers">Ofrece asiento</option>
-            <option value="seeks">Busca conductor</option>
-          </select>
-        </label>
-        <label>
           Distrito
           <select value={district} onChange={(e) => setDistrict(e.target.value)}>
             <option value="">Todos</option>
@@ -128,7 +105,18 @@ export const SearchTripsPage = () => {
           </select>
         </label>
       </section>
-      {loading ? <LoadingState /> : error ? <ErrorMessage error={error} onRetry={fetch} /> : filtered.length === 0 ? (
+      {!eligibility.hasConfirmedRide && eligibility.reachedRequestLimit ? (
+        <section className="state state-info">
+          <strong>Alcanzaste el máximo de solicitudes activas</strong>
+          <span>Puedes revisar viajes, pero deberás cancelar una solicitud antes de solicitar otro.</span>
+        </section>
+      ) : null}
+      {eligibility.hasConfirmedRide ? (
+        <section className="state state-info">
+          <strong>Ya tienes un viaje confirmado</strong>
+          <span>No mostraremos otros viajes mientras tu participación esté confirmada.</span>
+        </section>
+      ) : loading ? <LoadingState /> : error ? <ErrorMessage error={error} onRetry={fetch} /> : filtered.length === 0 ? (
         <EmptyState title="No hay viajes disponibles" subtitle="Prueba cambiando los filtros" />
       ) : (
         <>

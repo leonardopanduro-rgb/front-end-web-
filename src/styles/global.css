@@ -1118,3 +1118,40 @@ p {
     justify-content: space-between;
   }
 }
+.destination-picker {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.destination-map {
+  overflow: hidden;
+  min-height: 260px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface);
+}
+
+.destination-map .leaflet-container {
+  width: 100%;
+  height: 260px;
+}
+
+.destination-map-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.btn-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-sky);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}

@@ -10,6 +10,7 @@ import { useRequests } from '../hooks/useRequests';
 import { useRides } from '../hooks/useRides';
 import { useVehicles } from '../hooks/useVehicles';
 import { formatDateTime, isPast } from '../utils/formatters';
+import { usePassengerEligibility } from '../hooks/usePassengerEligibility';
 
 export const DashboardPage = () => {
   const { user, mode, setMode } = useAuth();
@@ -18,6 +19,7 @@ export const DashboardPage = () => {
   const { requests, loading: loadingReqs, fetch: fetchReqs } = useRequests();
   const { myRides, loading: loadingRides, fetch: fetchRides } = useRides(user?.id ?? null);
   const { vehicles, fetch: fetchVehicles } = useVehicles();
+  const eligibility = usePassengerEligibility(requests, myRides, user?.id ?? null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -32,7 +34,13 @@ export const DashboardPage = () => {
   const isDriver = mode === 'driver';
   const myActiveReqPubIds = new Set(requests.filter((req) => req.requesterId === user?.id && ['PENDING', 'ACCEPTED'].includes(req.status)).map((req) => req.publicationId));
   const myRidePubIds = new Set(myRides.map((entry) => entry.ride.publicationId));
-  const available = publications.filter((pub) => pub.authorId !== user?.id && !myActiveReqPubIds.has(pub.id) && !myRidePubIds.has(pub.id));
+  const available = publications.filter((pub) =>
+    pub.fromUTEC
+    && pub.driverToPassenger
+    && pub.authorId !== user?.id
+    && !myActiveReqPubIds.has(pub.id)
+    && !myRidePubIds.has(pub.id)
+  );
   const myPublications = publications.filter((pub) => pub.authorId === user?.id);
   const myPending = requests.filter((req) => req.requesterId === user?.id && req.status === 'PENDING');
   const incomingPending = requests.filter((req) => req.status === 'PENDING' && myPublications.some((pub) => pub.id === req.publicationId));
@@ -119,7 +127,7 @@ export const DashboardPage = () => {
         </section>
       ) : null}
 
-      {!isDriver && available.length > 0 ? (
+      {!isDriver && !eligibility.hasConfirmedRide && available.length > 0 ? (
         <section>
           <SectionHeader title="Viajes disponibles" action={<Link to="/search-trips">Ver todos</Link>} />
           <div className="cards-grid">
@@ -127,6 +135,13 @@ export const DashboardPage = () => {
               <TripCard key={pub.id} pub={pub} onClick={() => navigate(`/trips/${pub.id}`)} />
             ))}
           </div>
+        </section>
+      ) : null}
+
+      {!isDriver && eligibility.hasConfirmedRide ? (
+        <section className="info-band">
+          <strong>Ya tienes un viaje confirmado</strong>
+          <span>No mostraremos otros viajes disponibles mientras tu participación esté confirmada.</span>
         </section>
       ) : null}
 

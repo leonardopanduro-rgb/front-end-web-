@@ -10,13 +10,13 @@ interface TripCardProps {
 export const TripCard = ({ pub, statusBadge, onClick }: TripCardProps) => (
   <button className="card trip-card clickable" onClick={onClick}>
     <div className="card-topline">
-      <span className="eyebrow">{pub.fromUTEC ? 'Saliendo de UTEC' : 'Hacia campus'}</span>
+      <span className="eyebrow">Salida desde UTEC</span>
       {statusBadge ? <span className="status status-pending">{statusBadge}</span> : null}
     </div>
     <h3>{pub.titulo}</h3>
     <p>{pub.descripcion || 'Sin descripcion adicional.'}</p>
     <div className="meta-grid">
-      <span>{pub.driverToPassenger ? 'Ofrece asientos' : 'Busca conductor'}</span>
+      <span>Ofrece asientos</span>
       <span>{pub.destinationOrOrigin}</span>
       <span>{formatDateTime(pub.departureTime)}</span>
       <span>{pub.seats} asiento(s)</span>

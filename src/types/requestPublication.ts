@@ -11,6 +11,10 @@ export interface RequestPublication {
   externalLatitude: number | null;
   externalLongitude: number | null;
   status: RequestStatus;
+  requesterName?: string | null;
+  requesterCareer?: string | null;
+  requesterRating?: number | null;
+  legacyCountered?: boolean;
 }
 
 export interface RequestPublicationRequest {
