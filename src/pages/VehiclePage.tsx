@@ -12,6 +12,7 @@ import { useVehicles } from '../hooks/useVehicles';
 import { vehicleService } from '../services/vehicle';
 import { Vehicle, VehicleRequest } from '../types/vehicle';
 import { parseAxiosError } from '../utils/errorMessages';
+import { MAX_VEHICLE_SEATS, isValidPlate, isValidSeats } from '../utils/validators';
 
 const blank = { plate: '', brand: '', model: '', color: '', seats: '' };
 
@@ -55,11 +56,12 @@ export const VehiclePage = () => {
   const validate = () => {
     const next: Record<string, string> = {};
     if (!form.plate.trim()) next.plate = 'Requerido';
+    else if (!isValidPlate(form.plate)) next.plate = 'Formato invalido (ej. ABC-123)';
     if (!form.brand.trim()) next.brand = 'Requerido';
     if (!form.model.trim()) next.model = 'Requerido';
     if (!form.color.trim()) next.color = 'Requerido';
     const seats = Number.parseInt(form.seats, 10);
-    if (!Number.isInteger(seats) || seats <= 0) next.seats = 'Debe ser mayor a 0';
+    if (!isValidSeats(seats)) next.seats = `Debe estar entre 1 y ${MAX_VEHICLE_SEATS}`;
     setFormErrors(next);
     return Object.keys(next).length === 0;
   };
