@@ -149,7 +149,6 @@ p {
   width: 72px;
 }
 
-.route-chips,
 .public-actions,
 .stack-actions,
 .form-actions,
@@ -160,9 +159,28 @@ p {
   gap: 10px;
 }
 
-.route-chips {
-  flex-wrap: wrap;
+.welcome-car-icon {
+  align-items: center;
+  color: var(--color-sky);
+  display: flex;
   justify-content: center;
+}
+
+.hero-identity {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+}
+
+.avatar-link {
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.avatar-link:hover {
+  box-shadow: 0 4px 14px rgba(24, 168, 224, 0.35);
+  transform: scale(1.05);
 }
 
 .public-actions {
@@ -173,13 +191,6 @@ p {
 
 .public-actions .btn {
   min-width: 156px;
-}
-
-.route-chips span {
-  border: 1px solid rgba(24, 168, 224, 0.4);
-  border-radius: 999px;
-  color: var(--color-sky);
-  padding: 7px 12px;
 }
 
 .btn {

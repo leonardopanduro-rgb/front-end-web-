@@ -58,23 +58,24 @@ export const DashboardPage = () => {
 
   const stats = isDriver
     ? [
-        { n: myPublications.length, label: 'Publicados' },
         { n: incomingPending.length, label: 'Solicitudes' },
-        { n: driverRides.length, label: 'Confirmados' },
+        { n: driverRides.length, label: 'Pasajeros confirmados' },
       ]
     : [
         { n: available.length, label: 'Disponibles' },
         { n: myPending.length, label: 'Pendientes' },
-        { n: myRides.length, label: 'Confirmados' },
       ];
 
   return (
     <div className="page-stack">
       <section className="page-hero dashboard-hero">
-        <div>
-          <span className="eyebrow">Tu panel</span>
-          <h1>Hola, {user?.name}</h1>
-          <p>{user?.career?.replace(/_/g, ' ')} - rating {user?.rating?.toFixed(1) ?? 'sin calificar'}</p>
+        <div className="hero-identity">
+          <Link to="/profile" className="avatar small avatar-link" aria-label="Ir a mi perfil" title="Ir a mi perfil">{user?.name?.[0]}{user?.lastName?.[0]}</Link>
+          <div>
+            <span className="eyebrow">Tu panel</span>
+            <h1>Hola, {user?.name}</h1>
+            <p>{user?.career?.replace(/_/g, ' ')} - rating {user?.rating?.toFixed(1) ?? 'sin calificar'}</p>
+          </div>
         </div>
         <div className="segmented">
           <button className={!isDriver ? 'active' : ''} onClick={() => void switchMode('passenger')}>Pasajero</button>
@@ -98,13 +99,11 @@ export const DashboardPage = () => {
             <Link className="action-tile" to="/publish-trip"><span className="action-icon">+</span><span>Publicar viaje</span><small>Ofrece asientos disponibles.</small></Link>
             <Link className="action-tile" to="/driver-panel"><span className="action-icon">P</span><span>Panel conductor</span><small>Gestiona solicitudes recibidas.</small></Link>
             <Link className="action-tile" to="/vehicles"><span className="action-icon">V</span><span>Mis vehiculos</span><small>Manten tus datos actualizados.</small></Link>
-            <Link className="action-tile" to="/profile"><span className="action-icon">U</span><span>Perfil</span><small>Revisa tu cuenta y rating.</small></Link>
           </>
         ) : (
           <>
             <Link className="action-tile" to="/search-trips"><span className="action-icon">B</span><span>Buscar viaje</span><small>Encuentra rutas disponibles.</small></Link>
             <Link className="action-tile" to="/requests"><span className="action-icon">S</span><span>Mis solicitudes</span><small>Filtra y revisa tus estados.</small></Link>
-            <Link className="action-tile" to="/profile"><span className="action-icon">U</span><span>Perfil</span><small>Revisa tu cuenta y rating.</small></Link>
           </>
         )}
       </section>
@@ -142,13 +141,6 @@ export const DashboardPage = () => {
         <section className="info-band">
           <strong>Ya tienes un viaje confirmado vigente</strong>
           <span>No mostraremos otros viajes disponibles hasta que pase la hora de salida de tu viaje confirmado.</span>
-        </section>
-      ) : null}
-
-      {isDriver ? (
-        <section className="info-band">
-          <strong>Modo conductor</strong>
-          <span>Publica un viaje para ofrecer asientos y revisa las solicitudes que recibas en el panel conductor.</span>
         </section>
       ) : null}
     </div>

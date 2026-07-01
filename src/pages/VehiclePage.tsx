@@ -106,7 +106,6 @@ export const VehiclePage = () => {
           <h1>Mis vehiculos</h1>
           <p>Registra los autos que puedes usar para publicar o aceptar viajes como conductor.</p>
         </div>
-        <AppButton onClick={openCreate}>Agregar vehiculo</AppButton>
       </section>
       {loading ? <LoadingState /> : error ? <ErrorMessage error={error} onRetry={fetch} /> : myVehicles.length === 0 ? (
         <EmptyState title="Sin vehiculos registrados" subtitle="Agrega tu auto para publicar como conductor" ctaLabel="Registrar vehiculo" onCta={openCreate} />

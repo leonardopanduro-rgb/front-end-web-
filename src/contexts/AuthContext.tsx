@@ -72,10 +72,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(userData);
   };
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     const me = await userService.getMe();
     setUser(me);
-  };
+  }, []);
 
   return (
     <AuthContext.Provider

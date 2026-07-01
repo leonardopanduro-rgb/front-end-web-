@@ -39,7 +39,7 @@ const blankScheduleEntry = (): ScheduleEntry => ({
 });
 
 export const ProfilePage = () => {
-  const { user, refreshUser } = useAuth();
+  const { user, mode, refreshUser } = useAuth();
   const { vehicles, loading, fetch } = useVehicles();
   const navigate = useNavigate();
   const [publishingSchedule, setPublishingSchedule] = useState(false);
@@ -117,13 +117,10 @@ export const ProfilePage = () => {
           <div><dt>Carrera</dt><dd>{user.career.replace(/_/g, ' ')}</dd></div>
           <div><dt>Ciclo</dt><dd>{user.cycle}</dd></div>
           <div><dt>Telefono</dt><dd>{user.phone}</dd></div>
-          <div><dt>Rol</dt><dd>{user.role}</dd></div>
         </dl>
       </section>
-      <section className="info-band">
-        <strong>Modo de uso flexible</strong>
-        <span>Puedes ser pasajero o conductor segun el viaje.</span>
-      </section>
+      {mode === 'driver' ? (
+        <>
       <section className="page-stack">
         <div className="section-header">
           <h2>Mi itinerario de salidas</h2>
@@ -173,6 +170,8 @@ export const ProfilePage = () => {
           </div>
         )}
       </section>
+        </>
+      ) : null}
     </div>
   );
 };

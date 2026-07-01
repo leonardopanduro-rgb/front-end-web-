@@ -54,7 +54,7 @@ export const AppLayout = () => {
           <NavLink to="/publish-trip">Publicar viaje</NavLink>
           <NavLink to="/requests">Mis solicitudes</NavLink>
           <NavLink to="/driver-panel">Panel conductor</NavLink>
-          <NavLink to="/vehicles">Vehiculos</NavLink>
+          {mode === 'driver' ? <NavLink to="/vehicles">Vehiculos</NavLink> : null}
           <NavLink to="/profiles">Perfiles</NavLink>
           <NavLink to="/profile">Perfil</NavLink>
         </nav>

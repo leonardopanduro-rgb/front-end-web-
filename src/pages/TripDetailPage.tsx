@@ -8,7 +8,6 @@ import { LoadingState } from '../components/LoadingState';
 import { useAuth } from '../hooks/useAuth';
 import { publicationService } from '../services/publication';
 import { requestPublicationService } from '../services/requestPublication';
-import { weatherService, WeatherInfo } from '../services/weather';
 import { AppError } from '../types/apiError';
 import { Publication } from '../types/publication';
 import { parseAxiosError } from '../utils/errorMessages';
@@ -22,7 +21,6 @@ export const TripDetailPage = () => {
   const id = Number(publicationId);
   const { user } = useAuth();
   const [pub, setPub] = useState<Publication | null>(null);
-  const [weather, setWeather] = useState<WeatherInfo | null>(null);
   const { requests, loading: loadingRequests, fetch: fetchRequests } = useRequests();
   const { myRides, loading: loadingRides, fetch: fetchRides } = useRides(user?.id ?? null);
   const [loading, setLoading] = useState(true);
@@ -54,7 +52,6 @@ export const TripDetailPage = () => {
     void load();
     void fetchRequests();
     void fetchRides();
-    void weatherService.getCurrent().then(setWeather);
   }, [id, fetchRequests, fetchRides]);
 
   const validate = () => {
@@ -102,7 +99,6 @@ export const TripDetailPage = () => {
       <section className="card detail-main">
         <div className="card-topline">
           <span className="eyebrow">Salida desde UTEC</span>
-          <span>{pub.driverToPassenger ? 'Ofrece asientos' : 'Publicación no disponible'}</span>
         </div>
         <h1>{pub.titulo}</h1>
         {pub.descripcion ? <p>{pub.descripcion}</p> : null}
@@ -111,8 +107,6 @@ export const TripDetailPage = () => {
           <div><dt>Hora de salida</dt><dd>{formatDepartureHour(pub.departureTime)}</dd></div>
           <div><dt>Asientos</dt><dd>{pub.seats}</dd></div>
           {pub.distanceToUtecKm != null ? <div><dt>Distancia a UTEC</dt><dd>{formatDistance(pub.distanceToUtecKm)}</dd></div> : null}
-          <div><dt>Autor</dt><dd>Estudiante UTEC #{pub.authorId}</dd></div>
-          {weather ? <div><dt>Clima en UTEC</dt><dd>{weather.description} {weather.temperature} C</dd></div> : null}
         </dl>
       </section>
 

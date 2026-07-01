@@ -5,7 +5,6 @@ import { AppInput } from '../components/AppInput';
 import { useAuth } from '../hooks/useAuth';
 import { useVehicles } from '../hooks/useVehicles';
 import { publicationService } from '../services/publication';
-import { getCurrentCoords } from '../utils/locationHelpers';
 import { parseAxiosError } from '../utils/errorMessages';
 import { nextLocalIsoForTime } from '../utils/formatters';
 
@@ -14,16 +13,13 @@ export const PublishTripPage = () => {
   const navigate = useNavigate();
   const { vehicles, fetch: fetchVehicles } = useVehicles();
   const myVehicles = vehicles.filter((vehicle) => vehicle.ownerId === user?.id);
-  const [titulo, setTitulo] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [destination, setDestination] = useState('');
   const [seats, setSeats] = useState('');
   const [vehicleId, setVehicleId] = useState<number | null>(null);
   const [departureHour, setDepartureHour] = useState('');
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState('');
-  const [loadingGPS, setLoadingGPS] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -33,7 +29,6 @@ export const PublishTripPage = () => {
   const validate = () => {
     const next: Record<string, string> = {};
     const parsedSeats = Number.parseInt(seats, 10);
-    if (!titulo.trim() || titulo.length > 120) next.titulo = 'Requerido, maximo 120 caracteres';
     if (descripcion.length > 500) next.descripcion = 'Maximo 500 caracteres';
     if (!destination.trim() || destination.length > 120) next.destination = 'Requerido, maximo 120 caracteres';
     if (!Number.isInteger(parsedSeats) || parsedSeats <= 0) next.seats = 'Debe ser al menos 1';
@@ -43,17 +38,6 @@ export const PublishTripPage = () => {
     if (!departureHour) next.departure = 'Selecciona una hora';
     setErrors(next);
     return Object.keys(next).length === 0;
-  };
-
-  const handleGPS = async () => {
-    setLoadingGPS(true);
-    const result = await getCurrentCoords();
-    setLoadingGPS(false);
-    if (!result) {
-      window.alert('No se pudo obtener la ubicacion. Puedes continuar sin coordenadas.');
-      return;
-    }
-    setCoords({ lat: result.latitude, lng: result.longitude });
   };
 
   const handleSubmit = async (event: FormEvent) => {
@@ -66,11 +50,13 @@ export const PublishTripPage = () => {
         fromUTEC: true,
         driverToPassenger: true,
         seats: Number.parseInt(seats, 10),
-        titulo: titulo.trim(),
+        // DEUDA TECNICA: el backend exige `titulo` (@NotBlank), por eso lo autogeneramos
+        // a partir del destino. No modificar el backend/DTO para este cambio de UI.
+        titulo: `Salida UTEC - ${destination.trim()}`.slice(0, 120),
         descripcion: descripcion.trim(),
         destinationOrOrigin: destination.trim(),
-        externalLatitude: coords?.lat ?? null,
-        externalLongitude: coords?.lng ?? null,
+        externalLatitude: null,
+        externalLongitude: null,
         departureTime: nextLocalIsoForTime(departureHour),
         vehicleId,
       });
@@ -101,7 +87,6 @@ export const PublishTripPage = () => {
         </div>
       ) : null}
       <section className="form-grid two">
-        <AppInput label="Titulo" value={titulo} onChange={(e) => setTitulo(e.target.value)} error={errors.titulo} />
         <AppInput label="Destino" value={destination} onChange={(e) => setDestination(e.target.value)} error={errors.destination} />
         <AppInput label="Asientos" type="number" min={1} value={seats} onChange={(e) => setSeats(e.target.value)} error={errors.seats} />
         <AppInput label="Hora de salida" type="time" value={departureHour} onChange={(e) => setDepartureHour(e.target.value)} error={errors.departure} />
@@ -116,7 +101,6 @@ export const PublishTripPage = () => {
         {errors.vehicle ? <span className="field-error">{errors.vehicle}</span> : null}
       </label>
       <div className="form-actions">
-        <AppButton variant="outline" loading={loadingGPS} onClick={() => void handleGPS()}>{coords ? 'Coordenadas capturadas' : 'Usar mi ubicacion'}</AppButton>
         <AppButton type="submit" loading={submitting} disabled={myVehicles.length === 0}>Publicar viaje</AppButton>
       </div>
     </form>
