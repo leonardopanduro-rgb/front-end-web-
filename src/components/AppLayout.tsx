@@ -1,15 +1,18 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useUiFeedback } from '../hooks/useUiFeedback';
 import { Breadcrumbs } from './Breadcrumbs';
 
 export const AppLayout = () => {
   const { user, mode, logout } = useAuth();
+  const { confirm } = useUiFeedback();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleLogout = async () => {
-    if (!window.confirm('Seguro que quieres cerrar sesion?')) return;
+    const ok = await confirm({ title: 'Cerrar sesion', message: 'Seguro que quieres cerrar sesion?', confirmLabel: 'Cerrar sesion', danger: true });
+    if (!ok) return;
     await logout();
     navigate('/');
   };
@@ -51,10 +54,10 @@ export const AppLayout = () => {
         <nav className="nav" onClick={() => setIsMenuOpen(false)}>
           <NavLink to="/home">Inicio</NavLink>
           <NavLink to="/search-trips">Buscar viajes</NavLink>
-          <NavLink to="/publish-trip">Publicar viaje</NavLink>
           <NavLink to="/requests">Mis solicitudes</NavLink>
-          <NavLink to="/driver-panel">Panel conductor</NavLink>
-          <NavLink to="/vehicles">Vehiculos</NavLink>
+          {mode === 'driver' ? <NavLink to="/publish-trip">Publicar viaje</NavLink> : null}
+          {mode === 'driver' ? <NavLink to="/driver-panel">Panel conductor</NavLink> : null}
+          {mode === 'driver' ? <NavLink to="/vehicles">Vehiculos</NavLink> : null}
           <NavLink to="/profiles">Perfiles</NavLink>
           <NavLink to="/profile">Perfil</NavLink>
         </nav>

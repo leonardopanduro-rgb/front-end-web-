@@ -1,19 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AppButton } from '../components/AppButton';
 import { DriverRequestCard } from '../components/DriverRequestCard';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { LoadingState } from '../components/LoadingState';
-import { Modal } from '../components/Modal';
 import { useAuth } from '../hooks/useAuth';
+import { useUiFeedback } from '../hooks/useUiFeedback';
 import { usePublications } from '../hooks/usePublications';
 import { publicationService } from '../services/publication';
 import { requestPublicationService } from '../services/requestPublication';
-import { vehicleService } from '../services/vehicle';
 import { Publication } from '../types/publication';
 import { RequestPublication } from '../types/requestPublication';
-import { Vehicle } from '../types/vehicle';
 import { parseAxiosError } from '../utils/errorMessages';
 
 interface PubWithRequests {
@@ -22,16 +19,21 @@ interface PubWithRequests {
   loadingReqs: boolean;
 }
 
+// Prioriza las solicitudes que requieren accion (Pendientes) y oculta las Canceladas
+// por el pasajero, que solo agregan ruido al panel del conductor.
+const STATUS_ORDER: Record<string, number> = { PENDING: 0, ACCEPTED: 1, REJECTED: 2, CANCELLED: 3 };
+const prioritizeRequests = (requests: RequestPublication[]): RequestPublication[] =>
+  requests
+    .filter((request) => request.status !== 'CANCELLED')
+    .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]);
+
 export const DriverPanelPage = () => {
   const { user } = useAuth();
+  const { notify } = useUiFeedback();
   const navigate = useNavigate();
   const { publications, loading, error, fetch } = usePublications();
   const [pubData, setPubData] = useState<PubWithRequests[]>([]);
   const [processing, setProcessing] = useState<Record<string, boolean>>({});
-  const [vehicleModal, setVehicleModal] = useState(false);
-  const [pendingAccept, setPendingAccept] = useState<{ req: RequestPublication; pub: Publication } | null>(null);
-  const [requesterVehicles, setRequesterVehicles] = useState<Vehicle[]>([]);
-  const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -44,47 +46,26 @@ export const DriverPanelPage = () => {
     setPubData(myPubs.map((pub) => ({ pub, requests: [], loadingReqs: true })));
     myPubs.forEach((pub) => {
       void publicationService.getRequests(pub.id)
-        .then((requests) => setPubData((current) => current.map((item) => (item.pub.id === pub.id ? { ...item, requests, loadingReqs: false } : item))))
+        .then((requests) => setPubData((current) => current.map((item) => (item.pub.id === pub.id ? { ...item, requests: prioritizeRequests(requests), loadingReqs: false } : item))))
         .catch(() => setPubData((current) => current.map((item) => (item.pub.id === pub.id ? { ...item, loadingReqs: false } : item))));
     });
   }, [publications, user?.id]);
 
-  const doAccept = async (request: RequestPublication, vehicleId: number) => {
+  const handleAccept = async (request: RequestPublication, pub: Publication) => {
+    if (!pub.vehicleId) {
+      notify('La publicacion no tiene vehiculo asignado.', 'error');
+      return;
+    }
     const key = `accept-${request.id}`;
     setProcessing((current) => ({ ...current, [key]: true }));
     try {
-      const updated = await requestPublicationService.accept(request.id, { vehicleId });
+      const updated = await requestPublicationService.accept(request.id, { vehicleId: pub.vehicleId });
       setPubData((current) => current.map((item) => ({ ...item, requests: item.requests.map((req) => (req.id === request.id ? updated : req)) })));
+      notify('Solicitud aceptada. El pasajero fue confirmado.', 'success');
     } catch (err) {
-      window.alert(parseAxiosError(err).message);
+      notify(parseAxiosError(err).message, 'error');
     } finally {
       setProcessing((current) => ({ ...current, [key]: false }));
-    }
-  };
-
-  const initiateAccept = async (request: RequestPublication, pub: Publication) => {
-    if (pub.driverToPassenger) {
-      if (!pub.vehicleId) {
-        window.alert('La publicacion no tiene vehiculo asignado.');
-        return;
-      }
-      await doAccept(request, pub.vehicleId);
-      return;
-    }
-
-    try {
-      const allVehicles = await vehicleService.getAll();
-      const vehicles = allVehicles.filter((vehicle) => vehicle.ownerId === request.requesterId);
-      if (vehicles.length === 0) {
-        window.alert('El solicitante no tiene vehiculos registrados.');
-        return;
-      }
-      setRequesterVehicles(vehicles);
-      setSelectedVehicleId(vehicles[0].id);
-      setPendingAccept({ req: request, pub });
-      setVehicleModal(true);
-    } catch (err) {
-      window.alert(parseAxiosError(err).message);
     }
   };
 
@@ -94,18 +75,12 @@ export const DriverPanelPage = () => {
     try {
       const updated = await requestPublicationService.reject(request.id);
       setPubData((current) => current.map((item) => ({ ...item, requests: item.requests.map((req) => (req.id === request.id ? updated : req)) })));
+      notify('Solicitud rechazada.', 'info');
     } catch (err) {
-      window.alert(parseAxiosError(err).message);
+      notify(parseAxiosError(err).message, 'error');
     } finally {
       setProcessing((current) => ({ ...current, [key]: false }));
     }
-  };
-
-  const confirmAccept = async () => {
-    if (!pendingAccept || !selectedVehicleId) return;
-    setVehicleModal(false);
-    await doAccept(pendingAccept.req, selectedVehicleId);
-    setPendingAccept(null);
   };
 
   if (loading) return <LoadingState message="Cargando tus publicaciones..." />;
@@ -125,8 +100,8 @@ export const DriverPanelPage = () => {
         pubData.map(({ pub, requests, loadingReqs }) => (
           <section className="publication-section" key={pub.id}>
             <button className="publication-header" onClick={() => navigate(`/trips/${pub.id}`)}>
-              <strong>{pub.titulo}</strong>
-              <span>{pub.driverToPassenger ? 'Conductor' : 'Pasajero'}</span>
+              <strong>{pub.destinationOrOrigin}</strong>
+              <span>{requests.filter((request) => request.status === 'PENDING').length} pendiente(s)</span>
             </button>
             {loadingReqs ? <LoadingState message="Cargando solicitudes..." /> : requests.length === 0 ? <p className="muted">Sin solicitudes aun</p> : (
               <div className="cards-grid">
@@ -134,7 +109,7 @@ export const DriverPanelPage = () => {
                   <DriverRequestCard
                     key={request.id}
                     req={request}
-                    onAccept={() => void initiateAccept(request, pub)}
+                    onAccept={() => void handleAccept(request, pub)}
                     onReject={() => void handleReject(request)}
                     accepting={!!processing[`accept-${request.id}`]}
                     rejecting={!!processing[`reject-${request.id}`]}
@@ -145,20 +120,6 @@ export const DriverPanelPage = () => {
           </section>
         ))
       )}
-      <Modal open={vehicleModal} title="Seleccionar vehiculo del conductor" onClose={() => setVehicleModal(false)}>
-        <div className="modal-form">
-          {requesterVehicles.map((vehicle) => (
-            <button key={vehicle.id} className={`choice-card ${selectedVehicleId === vehicle.id ? 'active' : ''}`} onClick={() => setSelectedVehicleId(vehicle.id)}>
-              <strong>{vehicle.plate}</strong>
-              <span>{vehicle.brand} {vehicle.model} · {vehicle.color} · {vehicle.seats} asientos</span>
-            </button>
-          ))}
-          <div className="modal-actions">
-            <AppButton onClick={() => void confirmAccept()}>Confirmar aceptar</AppButton>
-            <AppButton variant="outline" onClick={() => setVehicleModal(false)}>Cancelar</AppButton>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 };

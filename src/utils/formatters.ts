@@ -26,6 +26,20 @@ export const toLocalIso = (date: Date): string => {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 };
 
+/** Normaliza un nombre a Capitalizacion ("LEO GARCIA" -> "Leo Garcia"). */
+export const formatName = (value: string): string =>
+  value
+    .split(' ')
+    .map((word) => (word ? word[0].toUpperCase() + word.slice(1).toLowerCase() : word))
+    .join(' ');
+
+/** Combina una fecha (YYYY-MM-DD) y una hora (HH:mm) en ISO local sin zona. */
+export const localIsoForDateTime = (date: string, time: string): string => {
+  const [year, month, day] = date.split('-').map(Number);
+  const [hours, minutes] = time.split(':').map(Number);
+  return toLocalIso(new Date(year, month - 1, day, hours, minutes, 0, 0));
+};
+
 export const nextLocalIsoForTime = (time: string): string => {
   const [hours, minutes] = time.split(':').map(Number);
   const date = new Date();

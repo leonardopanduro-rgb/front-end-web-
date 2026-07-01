@@ -16,7 +16,6 @@ export const TripCard = ({ pub, statusBadge, onClick }: TripCardProps) => (
     <h3>{pub.titulo}</h3>
     <p>{pub.descripcion || 'Sin descripcion adicional.'}</p>
     <div className="meta-grid">
-      <span>Ofrece asientos</span>
       <span>{pub.destinationOrOrigin}</span>
       <span>{formatDepartureHour(pub.departureTime)}</span>
       <span>{pub.seats} asiento(s)</span>

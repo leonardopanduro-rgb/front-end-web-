@@ -7,6 +7,7 @@ import { LoadingState } from '../components/LoadingState';
 import { Modal } from '../components/Modal';
 import { VehicleCard } from '../components/VehicleCard';
 import { useAuth } from '../hooks/useAuth';
+import { useUiFeedback } from '../hooks/useUiFeedback';
 import { useVehicles } from '../hooks/useVehicles';
 import { vehicleService } from '../services/vehicle';
 import { Vehicle, VehicleRequest } from '../types/vehicle';
@@ -16,6 +17,7 @@ const blank = { plate: '', brand: '', model: '', color: '', seats: '' };
 
 export const VehiclePage = () => {
   const { user } = useAuth();
+  const { confirm, notify } = useUiFeedback();
   const { vehicles, loading, error, fetch } = useVehicles();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Vehicle | null>(null);
@@ -87,13 +89,15 @@ export const VehiclePage = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm('Seguro que quieres eliminar este vehiculo?')) return;
+    const ok = await confirm({ title: 'Eliminar vehiculo', message: 'Seguro que quieres eliminar este vehiculo?', confirmLabel: 'Eliminar', danger: true });
+    if (!ok) return;
     setDeleting(id);
     try {
       await vehicleService.remove(id);
       await fetch();
+      notify('Vehiculo eliminado.', 'success');
     } catch (err) {
-      window.alert(parseAxiosError(err).message);
+      notify(parseAxiosError(err).message, 'error');
     } finally {
       setDeleting(null);
     }
@@ -106,7 +110,6 @@ export const VehiclePage = () => {
           <h1>Mis vehiculos</h1>
           <p>Registra los autos que puedes usar para publicar o aceptar viajes como conductor.</p>
         </div>
-        <AppButton onClick={openCreate}>Agregar vehiculo</AppButton>
       </section>
       {loading ? <LoadingState /> : error ? <ErrorMessage error={error} onRetry={fetch} /> : myVehicles.length === 0 ? (
         <EmptyState title="Sin vehiculos registrados" subtitle="Agrega tu auto para publicar como conductor" ctaLabel="Registrar vehiculo" onCta={openCreate} />

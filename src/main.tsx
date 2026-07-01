@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { App } from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthProvider } from './contexts/AuthContext';
+import { UiFeedbackProvider } from './contexts/UiFeedbackContext';
 import './styles/theme.css';
 import './styles/global.css';
 import 'leaflet/dist/leaflet.css';
@@ -13,7 +14,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <ErrorBoundary>
       <BrowserRouter>
         <AuthProvider>
-          <App />
+          <UiFeedbackProvider>
+            <App />
+          </UiFeedbackProvider>
         </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>
