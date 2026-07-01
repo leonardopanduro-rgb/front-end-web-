@@ -5,6 +5,7 @@ import { LoadingState } from '../components/LoadingState';
 import { SectionHeader } from '../components/SectionHeader';
 import { TripCard } from '../components/TripCard';
 import { useAuth } from '../hooks/useAuth';
+import { useUiFeedback } from '../hooks/useUiFeedback';
 import { usePublications } from '../hooks/usePublications';
 import { useRequests } from '../hooks/useRequests';
 import { useRides } from '../hooks/useRides';
@@ -14,6 +15,7 @@ import { usePassengerEligibility } from '../hooks/usePassengerEligibility';
 
 export const DashboardPage = () => {
   const { user, mode, setMode } = useAuth();
+  const { confirm } = useUiFeedback();
   const navigate = useNavigate();
   const { publications, loading: loadingPubs, fetch: fetchPubs } = usePublications();
   const { requests, loading: loadingReqs, fetch: fetchReqs } = useRequests();
@@ -48,7 +50,12 @@ export const DashboardPage = () => {
 
   const switchMode = async (next: 'passenger' | 'driver') => {
     if (next === 'driver' && !hasVehicle) {
-      if (window.confirm('Para usar el modo conductor primero debes registrar un vehiculo. Ir a vehiculos?')) navigate('/vehicles');
+      const ok = await confirm({
+        title: 'Registra un vehiculo',
+        message: 'Para usar el modo conductor primero debes registrar un vehiculo. Ir a vehiculos?',
+        confirmLabel: 'Ir a vehiculos',
+      });
+      if (ok) navigate('/vehicles');
       return;
     }
     await setMode(next);

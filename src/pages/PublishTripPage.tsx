@@ -2,11 +2,18 @@ import { FormEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppButton } from '../components/AppButton';
 import { AppInput } from '../components/AppInput';
+import { DISTRICT_NAMES } from '../data/limaPlaces';
 import { useAuth } from '../hooks/useAuth';
 import { useVehicles } from '../hooks/useVehicles';
 import { publicationService } from '../services/publication';
 import { parseAxiosError } from '../utils/errorMessages';
-import { nextLocalIsoForTime } from '../utils/formatters';
+import { localIsoForDateTime } from '../utils/formatters';
+
+const pad = (n: number) => String(n).padStart(2, '0');
+const todayLocal = (): string => {
+  const now = new Date();
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+};
 
 export const PublishTripPage = () => {
   const { user } = useAuth();
@@ -17,6 +24,7 @@ export const PublishTripPage = () => {
   const [destination, setDestination] = useState('');
   const [seats, setSeats] = useState('');
   const [vehicleId, setVehicleId] = useState<number | null>(null);
+  const [departureDate, setDepartureDate] = useState(todayLocal());
   const [departureHour, setDepartureHour] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState('');
@@ -35,7 +43,11 @@ export const PublishTripPage = () => {
     if (!vehicleId) next.vehicle = 'Selecciona un vehiculo';
     const vehicle = myVehicles.find((item) => item.id === vehicleId);
     if (vehicle && parsedSeats > vehicle.seats) next.seats = `Maximo ${vehicle.seats} para este vehiculo`;
+    if (!departureDate) next.date = 'Selecciona una fecha';
     if (!departureHour) next.departure = 'Selecciona una hora';
+    if (departureDate && departureHour && new Date(localIsoForDateTime(departureDate, departureHour)).getTime() < Date.now()) {
+      next.departure = 'La fecha y hora ya pasaron';
+    }
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -57,7 +69,7 @@ export const PublishTripPage = () => {
         destinationOrOrigin: destination.trim(),
         externalLatitude: null,
         externalLongitude: null,
-        departureTime: nextLocalIsoForTime(departureHour),
+        departureTime: localIsoForDateTime(departureDate, departureHour),
         vehicleId,
       });
       navigate('/home');
@@ -87,8 +99,20 @@ export const PublishTripPage = () => {
         </div>
       ) : null}
       <section className="form-grid two">
-        <AppInput label="Destino" value={destination} onChange={(e) => setDestination(e.target.value)} error={errors.destination} />
+        <AppInput
+          label="Destino"
+          value={destination}
+          onChange={(e) => setDestination(e.target.value)}
+          error={errors.destination}
+          list="district-suggestions"
+          placeholder="Ej: Miraflores, Parque Kennedy"
+          helper="Puedes elegir un distrito sugerido o escribir el destino completo."
+        />
+        <datalist id="district-suggestions">
+          {DISTRICT_NAMES.map((name) => <option key={name} value={name} />)}
+        </datalist>
         <AppInput label="Asientos" type="number" min={1} value={seats} onChange={(e) => setSeats(e.target.value)} error={errors.seats} />
+        <AppInput label="Fecha de salida" type="date" min={todayLocal()} value={departureDate} onChange={(e) => setDepartureDate(e.target.value)} error={errors.date} />
         <AppInput label="Hora de salida" type="time" value={departureHour} onChange={(e) => setDepartureHour(e.target.value)} error={errors.departure} />
       </section>
       <AppInput label="Descripcion" multiline value={descripcion} onChange={(e) => setDescripcion(e.target.value)} error={errors.descripcion} />

@@ -59,6 +59,7 @@ export const TripDetailPage = () => {
     const parsedSeats = Number.parseInt(seats, 10);
     if (!pickup.trim() && !destinationPoint) next.pickup = 'Escribe un destino o marca un punto en el mapa';
     if (!Number.isInteger(parsedSeats) || parsedSeats <= 0) next.seats = 'Debe ser al menos 1';
+    else if (pub && parsedSeats > pub.seats) next.seats = `Máximo ${pub.seats} asiento(s) disponibles en este viaje`;
     setFormErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -128,7 +129,7 @@ export const TripDetailPage = () => {
               El mapa ya es válido para la interfaz, pero el backend actual todavía exige también un texto de destino.
             </div>
           ) : null}
-          <AppInput label="Asientos que necesitas" type="number" min={1} value={seats} onChange={(e) => setSeats(e.target.value)} error={formErrors.seats} />
+          <AppInput label="Asientos que necesitas" type="number" min={1} max={pub.seats} value={seats} onChange={(e) => setSeats(e.target.value)} error={formErrors.seats} helper={`Máximo ${pub.seats} asiento(s) en este viaje`} />
           <AppInput label="Mensaje" multiline value={message} onChange={(e) => setMessage(e.target.value)} />
           <AppButton type="submit" loading={submitting}>Enviar solicitud</AppButton>
         </form>

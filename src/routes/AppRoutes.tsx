@@ -1,9 +1,10 @@
 import { lazy, Suspense } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { AppLayout } from '../components/AppLayout';
 import { LoadingState } from '../components/LoadingState';
 import { PublicRoute } from './PublicRoute';
 import { ProtectedRoute } from './ProtectedRoute';
+import { DriverRoute } from './DriverRoute';
 
 const WelcomePage = lazy(() => import('../pages/WelcomePage').then((m) => ({ default: m.WelcomePage })));
 const LoginPage = lazy(() => import('../pages/LoginPage').then((m) => ({ default: m.LoginPage })));
@@ -20,6 +21,7 @@ const ProfilePage = lazy(() => import('../pages/ProfilePage').then((m) => ({ def
 const ProfilesPage = lazy(() => import('../pages/ProfilesPage').then((m) => ({ default: m.ProfilesPage })));
 const PublicProfilePage = lazy(() => import('../pages/PublicProfilePage').then((m) => ({ default: m.PublicProfilePage })));
 const ReviewPage = lazy(() => import('../pages/ReviewPage').then((m) => ({ default: m.ReviewPage })));
+const NotFoundPage = lazy(() => import('../pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
 
 export const AppRoutes = () => (
   <Suspense fallback={<LoadingState message="Cargando vista..." />}>
@@ -36,10 +38,12 @@ export const AppRoutes = () => (
           <Route path="/home" element={<DashboardPage />} />
           <Route path="/search-trips" element={<SearchTripsPage />} />
           <Route path="/trips/:publicationId" element={<TripDetailPage />} />
-          <Route path="/publish-trip" element={<PublishTripPage />} />
           <Route path="/requests" element={<MyRequestsPage />} />
-          <Route path="/driver-panel" element={<DriverPanelPage />} />
           <Route path="/vehicles" element={<VehiclePage />} />
+          <Route element={<DriverRoute />}>
+            <Route path="/publish-trip" element={<PublishTripPage />} />
+            <Route path="/driver-panel" element={<DriverPanelPage />} />
+          </Route>
           <Route path="/profiles" element={<ProfilesPage />} />
           <Route path="/profiles/:userId" element={<PublicProfilePage />} />
           <Route path="/profile" element={<ProfilePage />} />
@@ -47,7 +51,7 @@ export const AppRoutes = () => (
         </Route>
       </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   </Suspense>
 );

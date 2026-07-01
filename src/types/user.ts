@@ -12,3 +12,12 @@ export interface User {
   rating: number | null;
   role: UserRole;
 }
+
+/** Vista publica de un usuario (sin datos sensibles). Endpoint: GET /users/{id}/public */
+export interface PublicUser {
+  id: number;
+  name: string;
+  lastName: string;
+  career: string | null;
+  rating: number | null;
+}

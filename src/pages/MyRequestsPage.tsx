@@ -6,16 +6,20 @@ import { LoadingState } from '../components/LoadingState';
 import { Pagination } from '../components/Pagination';
 import { RequestCard } from '../components/RequestCard';
 import { useAuth } from '../hooks/useAuth';
+import { useUiFeedback } from '../hooks/useUiFeedback';
 import { useRequests } from '../hooks/useRequests';
+import { usePublications } from '../hooks/usePublications';
 import { requestPublicationService } from '../services/requestPublication';
 import { RequestPublication } from '../types/requestPublication';
 import { parseAxiosError } from '../utils/errorMessages';
 
 export const MyRequestsPage = () => {
   const { user } = useAuth();
+  const { confirm, notify } = useUiFeedback();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { requests, setRequests, loading, error, fetch } = useRequests();
+  const { publications, fetch: fetchPubs } = usePublications();
   const [cancelling, setCancelling] = useState<number | null>(null);
   const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
   const [size, setSize] = useState(Number(searchParams.get('size')) || 10);
@@ -24,14 +28,16 @@ export const MyRequestsPage = () => {
   const mine = requests
     .filter((request) => request.requesterId === user?.id && !request.requesterIsDriver)
     .sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
+  const pubById = new Map(publications.map((publication) => [publication.id, publication]));
   const safePage = Math.min(page, Math.max(1, Math.ceil(mine.length / size)));
   const paginated = mine.slice((safePage - 1) * size, safePage * size);
 
   useEffect(() => {
     const controller = new AbortController();
     void fetch(controller.signal);
+    void fetchPubs(controller.signal);
     return () => controller.abort();
-  }, [fetch]);
+  }, [fetch, fetchPubs]);
 
   useEffect(() => {
     const next = new URLSearchParams();
@@ -45,13 +51,15 @@ export const MyRequestsPage = () => {
   }, [size]);
 
   const handleCancel = async (request: RequestPublication) => {
-    if (!window.confirm('Seguro que quieres cancelar esta solicitud?')) return;
+    const ok = await confirm({ title: 'Cancelar solicitud', message: 'Seguro que quieres cancelar esta solicitud?', confirmLabel: 'Cancelar solicitud', danger: true });
+    if (!ok) return;
     setCancelling(request.id);
     try {
       const updated = await requestPublicationService.cancel(request.id);
       setRequests((current) => current.map((item) => (item.id === request.id ? updated : item)));
+      notify('Solicitud cancelada.', 'success');
     } catch (err) {
-      window.alert(parseAxiosError(err).message);
+      notify(parseAxiosError(err).message, 'error');
     } finally {
       setCancelling(null);
     }
@@ -74,7 +82,7 @@ export const MyRequestsPage = () => {
       ) : (
         <>
           <div className="cards-grid">
-            {paginated.map((request) => <RequestCard key={request.id} req={request} onCancel={request.status === 'PENDING' ? () => void handleCancel(request) : undefined} cancelling={cancelling === request.id} />)}
+            {paginated.map((request) => <RequestCard key={request.id} req={request} publication={pubById.get(request.publicationId)} onCancel={request.status === 'PENDING' ? () => void handleCancel(request) : undefined} cancelling={cancelling === request.id} />)}
           </div>
           <Pagination page={safePage} size={size} total={mine.length} onPageChange={setPage} onSizeChange={setSize} />
         </>

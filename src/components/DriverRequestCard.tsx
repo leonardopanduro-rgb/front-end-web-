@@ -1,4 +1,5 @@
 import { RequestPublication } from '../types/requestPublication';
+import { formatName } from '../utils/formatters';
 import { AppButton } from './AppButton';
 import { StatusBadge } from './StatusBadge';
 
@@ -13,7 +14,7 @@ interface DriverRequestCardProps {
 export const DriverRequestCard = ({ req, onAccept, onReject, accepting, rejecting }: DriverRequestCardProps) => (
   <article className="card request-card compact">
     <div className="card-topline">
-      <span className="eyebrow">{req.requesterName || `Estudiante UTEC #${req.requesterId}`}</span>
+      <span className="eyebrow">{req.requesterName ? formatName(req.requesterName) : `Estudiante UTEC #${req.requesterId}`}</span>
       <StatusBadge status={req.status} />
     </div>
     <div className="meta-grid">
@@ -22,8 +23,7 @@ export const DriverRequestCard = ({ req, onAccept, onReject, accepting, rejectin
     </div>
     <p>{req.message || 'Sin mensaje.'}</p>
     <div className="meta-grid">
-      <span>{req.requesterIsDriver ? 'Solicita conducir' : 'Solicita asiento'}</span>
-      <span>{req.seats} asiento(s)</span>
+      <span>Solicita {req.seats} asiento(s)</span>
       <span>Destino: {req.pickupPointOrDestine}</span>
     </div>
     {req.status === 'PENDING' ? (
